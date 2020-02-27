@@ -1,4 +1,4 @@
-#define fw_vers "2xDS18_0.1.0.0a"
+#define fw_vers "2xDS18_0.1.0.1a"
 // Firmware id  : 2xDS18
 // Firmware vers: 0.1.0.0a a=autoupdate
 
@@ -47,7 +47,7 @@
 #define checkMqttClient 80 // in ms intervallo per il controllo dell'arrivo di messaggi
 #define leaseDuration 6 // lease del DHCP in hour 
 
-#define readingSensorsInterval 3 // in minuti, ogni quanti minuti legge i sensori
+#define readingSensorsInterval 5 // in minuti, ogni quanti minuti legge i sensori
 #define minReadTime 30           // in sec, tempo minimo fra una lettura e l'altra
 #define numReads 3 // numero di letture fra cui fare la media
 
