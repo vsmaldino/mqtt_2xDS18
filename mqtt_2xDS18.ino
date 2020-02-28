@@ -1,4 +1,4 @@
-#define fw_vers "2xDS18_0.1.0.1a"
+#define fw_vers "2xDS18_0.1.0.2a"
 // Firmware id  : 2xDS18
 // Firmware vers: 0.1.0.0a a=autoupdate
 
@@ -26,7 +26,7 @@
 #define otapath "myotapath"
 */
 
-#define maxRetr 20
+#define maxRetr 40
 #define mqttClientId "HomeBoiler"
 #define mqttTopic "announcement/clientid"
 #define mqttTopicOut    "home/boiler/wemosd1/out"
