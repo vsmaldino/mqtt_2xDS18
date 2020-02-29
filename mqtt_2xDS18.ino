@@ -1,4 +1,4 @@
-#define fw_vers "2xDS18_0.1.0.2a"
+#define fw_vers "2xDS18_0.1.0.4a"
 // Firmware id  : 2xDS18
 // Firmware vers: 0.1.0.0a a=autoupdate
 
@@ -21,13 +21,14 @@
 #define mqttPort myport
 #define mqttUser "myusername"
 #define mqttPassword "mypassword"
+#define mqttTopicPrefix "myprefix/"
 #define otahost "myotahost"
 #define otaport myotaport
 #define otapath "myotapath"
 */
 
 #define maxRetr 40
-#define mqttClientId "HomeBoiler"
+#define mqttClientId "smaldinoHomeBoiler"
 #define mqttTopic "announcement/clientid"
 #define mqttTopicOut    "home/boiler/wemosd1/out"
 #define mqttTopicCmds   "home/boiler/wemosd1/cmds"
@@ -98,7 +99,8 @@ float floatDataVal2; // valore di temperatura, usato per la media
 #define MEDIUM 1     // indica che è una lettura intermedia
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+//**1 PubSubClient client(espClient);
+PubSubClient client;
 
 void checkOTAupdates() {
   String otaurl;
@@ -137,6 +139,7 @@ void checkOTAupdates() {
 int myconnect() {
    int retr;
    char textAnnounce[100];
+   char topic[200];
 
    WiFi.mode(WIFI_STA); // importante, altrimenti va in modo sta+ap e crea un ssid di nome FaryLink
    WiFi.begin(ssid, password);
@@ -165,6 +168,9 @@ int myconnect() {
    // ip update found, checkOTAupdates() restarts the board
    client.setCallback(callback);
    client.setServer(mqttServer, mqttPort);
+   //**1
+   client.setClient(espClient);
+   //**1
    Serial.print("Connecting to MQTT server ");
    Serial.print(mqttServer);
    Serial.print(" as clientid '");
@@ -189,7 +195,9 @@ int myconnect() {
    }
    sprintf(textAnnounce,"Hello, here %s", mqttClientId);
    client.publish(mqttTopic,textAnnounce);
-   client.subscribe(mqttTopicCmds);
+   strcpy(topic,mqttTopicPrefix);
+   strcat(topic,mqttTopicCmds);
+   client.subscribe(topic);
    return statusOK;
 } // myconnect
 
@@ -235,6 +243,8 @@ void setup() {
    readingMessageSent=false;
     
    status=myconnect();
+   Serial.print("Status: ");
+   Serial.println(status);
 
    if (status <= statusOK) {
       status=initSensors();
@@ -286,6 +296,7 @@ void loop () {
    if (status <= statusOK) {
       if (loopCount4client > loop4client) { 
         loopCount4client=0;
+        // Serial.println("loop");
         // client.loop serve a inviare e recuperare i messaggi 
         // se il tempo fra 2 loop è troppo lungo, si perdono i
         // i messaggi, soprattutto quelli in ingresso
@@ -368,7 +379,8 @@ void readSensors(int phase) {
     Serial.print("Temper. (dallas1) = ");
     Serial.print(floatDataVal1/numReads);
     Serial.println("*C");
-    strcpy(topic, mqttTopicOut);
+    strcpy(topic, mqttTopicPrefix);
+    strcat(topic, mqttTopicOut);
     strcat(topic,"/tempdallas1");
     sprintf(message,"%3.1f",floatDataVal1/numReads);
     client.publish(topic,message);
@@ -376,7 +388,8 @@ void readSensors(int phase) {
     Serial.print("Temper. (dallas2) = ");
     Serial.print(floatDataVal2/numReads);
     Serial.println("*C");
-    strcpy(topic, mqttTopicOut);
+    strcpy(topic, mqttTopicPrefix);
+    strcat(topic, mqttTopicOut);
     strcat(topic,"/tempdallas2");
     sprintf(message,"%3.1f",floatDataVal2/numReads);
     client.publish(topic,message);
@@ -420,7 +433,8 @@ void manageSensorReading() {
       floatDataVal2=0;
       loopCount4ReadingSensors=0;
       // avvisa che è conclusa la sequenza di lettura
-      strcpy(topic, mqttTopicOut);
+      strcpy(topic, mqttTopicPrefix);
+      strcat(topic, mqttTopicOut);
       strcat(topic,"/reading");
       client.publish(topic,"READINGOFF");
       readingMessageSent=false;
@@ -428,7 +442,8 @@ void manageSensorReading() {
     else {
       // avvisa che è in corso la lettura
       if (!readingMessageSent) {
-        strcpy(topic, mqttTopicOut);
+        strcpy(topic, mqttTopicPrefix);
+        strcat(topic, mqttTopicOut);
         strcat(topic,"/reading");
         client.publish(topic,"READINGON");
         readingMessageSent=true;
@@ -440,7 +455,8 @@ void manageSensorReading() {
     if (forceReadSensors) {
       // avvisa che è pendente la richiesta di lettura
       if (!readingMessageSent) {
-        strcpy(topic, mqttTopicOut);
+        strcpy(topic, mqttTopicPrefix);
+        strcat(topic, mqttTopicOut);
         strcat(topic,"/reading");
         client.publish(topic,"READINGON");
         readingMessageSent=true;
